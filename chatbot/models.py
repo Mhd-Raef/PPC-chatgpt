@@ -2,7 +2,7 @@ from django.db import models
 
 class Chat(models.Model):
     context = models.BinaryField()
-    response = models.TextField()
+    response = models.BinaryField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

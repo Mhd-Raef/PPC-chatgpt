@@ -13,14 +13,11 @@ load_dotenv()
 
 
 
-def ask_openai(message):
+def ask_openai(chatgpt_chat):
     openai.api_key = json.loads(os.environ.get('API_TOKENS'))[random.randint(0, 2)]
     response = openai.ChatCompletion.create(
         model = "gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are an helpful assistant."},
-            {"role": "user", "content": message},
-        ]
+        messages=chatgpt_chat
     )
     
     answer = response.choices[0].message.content.strip()
@@ -48,14 +45,25 @@ def chatbot(request):
             response = "Context deleted successfully"
         else:
             records = Chat.objects.all()
-            all_context = ""
-            for record in records:
-                all_context = all_context + str(three_des(record.context, False), 'UTF-8') + ". "
-            all_context = all_context + message
-            print(all_context)
-            response = ask_openai(all_context)
+            
+            if not records:
+                chatgpt_chat = [
+                    {"role": "system", "content": "You are an helpful assistant."},
+                    {"role": "user", "content": message},
+                ]
+            else:
+                chatgpt_chat = [
+                    {"role": "system", "content": "You are an helpful assistant."},
+                ]
+                for record in records:
+                    chatgpt_chat.append({"role": "user", "content": str(three_des(record.context, False), 'UTF-8')},)
+                    chatgpt_chat.append({"role": "assistant", "content": str(three_des(record.response, False), 'UTF-8')},)
+                chatgpt_chat.append({"role": "user", "content": message},)
+
+            response = ask_openai(chatgpt_chat=chatgpt_chat)
             context = three_des(message, True)
-            chat = Chat(context=context, response=response, created_at=timezone.now())
+            res_enc = three_des(response, True)
+            chat = Chat(context=context, response=res_enc, created_at=timezone.now())
             chat.save()
         return JsonResponse({'message': message, 'response': response})
     return render(request, 'chatbot.html')
