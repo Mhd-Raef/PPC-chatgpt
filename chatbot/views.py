@@ -12,6 +12,9 @@ load_dotenv()
 
 
 
+def get_csrf_token(request):
+    return JsonResponse({'csrfToken': request.COOKIES['csrftoken']})
+
 
 def ask_openai(chatgpt_chat):
     openai.api_key = json.loads(os.environ.get('API_TOKENS'))[random.randint(0, 2)]
@@ -46,24 +49,25 @@ def chatbot(request):
         else:
             records = Chat.objects.all()
             
-            if not records:
-                chatgpt_chat = [
-                    {"role": "system", "content": "You are an helpful assistant."},
-                    {"role": "user", "content": message},
-                ]
-            else:
-                chatgpt_chat = [
-                    {"role": "system", "content": "You are an helpful assistant."},
-                ]
-                for record in records:
-                    chatgpt_chat.append({"role": "user", "content": str(three_des(record.context, False), 'UTF-8')},)
-                    chatgpt_chat.append({"role": "assistant", "content": str(three_des(record.response, False), 'UTF-8')},)
-                chatgpt_chat.append({"role": "user", "content": message},)
+            # if not records:
+            #     chatgpt_chat = [
+            #         {"role": "system", "content": "You are an helpful assistant."},
+            #         {"role": "user", "content": message},
+            #     ]
+            # else:
+            #     chatgpt_chat = [
+            #         {"role": "system", "content": "You are an helpful assistant."},
+            #     ]
+            #     for record in records:
+            #         chatgpt_chat.append({"role": "user", "content": str(three_des(record.context, False), 'UTF-8')},)
+            #         chatgpt_chat.append({"role": "assistant", "content": str(three_des(record.response, False), 'UTF-8')},)
+            #     chatgpt_chat.append({"role": "user", "content": message},)
 
-            response = ask_openai(chatgpt_chat=chatgpt_chat)
+            # response = ask_openai(chatgpt_chat=chatgpt_chat)
+            response = "Test API"
             context = three_des(message, True)
             res_enc = three_des(response, True)
             chat = Chat(context=context, response=res_enc, created_at=timezone.now())
             chat.save()
         return JsonResponse({'message': message, 'response': response})
-    return render(request, 'chatbot.html')
+    return render(request, 'index.html')
